@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>草原</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #90EE90;
+        }
+
+        #container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #90EE90;
+        }
+
+        #background {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            z-index: 1;
+        }
+
+        .character {
+            position: absolute;
+            cursor: pointer;
+            z-index: 10;
+            transition: transform 0.1s;
+            user-select: none;
+        }
+
+        .character:hover {
+            filter: brightness(1.1);
+        }
+
+        .character img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        .character.flipped img {
+            transform: scaleX(-1);
+        }
+
+        .emoji {
+            position: absolute;
+            font-size: 30px;
+            pointer-events: none;
+            z-index: 100;
+            animation: floatUp 2s ease-out forwards;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translate(0, 0);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(var(--drift-x), -150px);
+                opacity: 0;
+            }
+        }
+
+        #counter {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 25px;
+            border-radius: 15px;
+            font-size: 24px;
+            font-weight: bold;
+            z-index: 1000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            color: #333;
+        }
+
+        #overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        #overlay.active {
+            display: flex;
+        }
+
+        #overlay-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        #overlay-image {
+            max-width: 100%;
+            max-height: 80vh;
+            object-fit: contain;
+            border-radius: 10px;
+        }
+
+        #close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 40px;
+            height: 40px;
+            background: #ff4444;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+
+        #close-btn:hover {
+            background: #cc0000;
+        }
+
+        .gif-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <img id="background" src="sibahu1.png" alt="草原">
+        <div id="counter">0/0</div>
+    </div>
+
+    <div id="overlay">
+        <div id="overlay-content">
+            <button id="close-btn">×</button>
+            <img id="overlay-image" src="" alt="詳細画像">
+        </div>
+    </div>
+
+    <script>
+        // キャラクター定義（いつでも追加できます）
+        const characters = [
+            {
+                name: "うさぎちゃん",
+                image: "usagi.png",
+                detailImage: "usagi_detail.png",
+                emoji: ["💕", "✨", "🌸"],
+                size: 25,
+                moveType: 3, // ぴょんぴょん跳ねる
+                moveTime: 3,
+                restTime: 2,
+                areaType: 1, // 下部1/3
+                gifUrl: "", // GIFがあれば指定
+                gifDuration: 3000
+            },
+            {
+                name: "ねこさん",
+                image: "neko.png",
+                detailImage: "neko_detail.png",
+                emoji: ["😺", "💤", "🐾"],
+                size: 20,
+                moveType: 2, // スーッと滑る
+                moveTime: 4,
+                restTime: 5,
+                areaType: 2, // 中央1/3
+                gifUrl: "",
+                gifDuration: 2000
+            },
+            {
+                name: "いぬくん",
+                image: "inu.png",
+                detailImage: "inu_detail.png",
+                emoji: ["🦴", "❤️", "🎾"],
+                size: 30,
+                moveType: 2,
+                moveTime: 2,
+                restTime: 3,
+                areaType: 1,
+                gifUrl: "",
+                gifDuration: 2500
+            },
+            {
+                name: "とりさん",
+                image: "tori.png",
+                detailImage: "tori_detail.png",
+                emoji: ["🎵", "🌟", "🍃"],
+                size: 15,
+                moveType: 2,
+                moveTime: 5,
+                restTime: 1,
+                areaType: 3, // 上部1/3
+                gifUrl: "",
+                gifDuration: 3000
+            },
+            {
+                name: "くま��ゃん",
+                image: "kuma.png",
+                detailImage: "kuma_detail.png",
+                emoji: ["🍯", "💪", "🌺"],
+                size: 40,
+                moveType: 1, // ほとんど動かない
+                moveTime: 6,
+                restTime: 8,
+                areaType: 1,
+                gifUrl: "",
+                gifDuration: 4000
+            }
+        ];
+
+        let activeCharacters = [];
+        let containerRect;
+        let backgroundRect;
+
+        function init() {
+            updateContainerRect();
+            updateCounter();
+            selectRandomCharacters();
+            setupOverlay();
+            
+            window.addEventListener('resize', () => {
+                updateContainerRect();
+                repositionCharacters();
+            });
+
+            // 5分ごとにキャラクターを切り替え
+            setInterval(() => {
+                clearCharacters();
+                selectRandomCharacters();
+            }, 5 * 60 * 1000);
+        }
+
+        function updateContainerRect() {
+            const bg = document.getElementById('background');
+            backgroundRect = bg.getBoundingClientRect();
+            containerRect = document.getElementById('container').getBoundingClientRect();
+        }
+
+        function selectRandomCharacters() {
+            const shuffled = [...characters].sort(() => Math.random() - 0.5);
+            const selected = shuffled.slice(0, Math.min(3, characters.length));
+            
+            selected.forEach(char => {
+                createCharacter(char);
+            });
+        }
+
+        function createCharacter(charData) {
+            const charElement = document.createElement('div');
+            charElement.className = 'character';
+            
+            const img = document.createElement('img');
+            img.src = charData.image;
+            charElement.appendChild(img);
+            
+            const size = calculateSize(charData.size);
+            charElement.style.width = size + 'px';
+            charElement.style.height = size + 'px';
+            
+            const pos = getRandomPosition(charData.areaType, size);
+            charElement.style.left = pos.x + 'px';
+            charElement.style.top = pos.y + 'px';
+            
+            document.getElementById('container').appendChild(charElement);
+            
+            const charState = {
+                element: charElement,
+                data: charData,
+                size: size,
+                x: pos.x,
+                y: pos.y,
+                targetX: pos.x,
+                targetY: pos.y,
+                isMoving: false,
+                lastDirection: 1,
+                clickCount: 0,
+                clickTimer: null
+            };
+            
+            activeCharacters.push(charState);
+            
+            setupCharacterEvents(charState);
+            startCharacterBehavior(charState);
+            
+            if (charData.gifUrl) {
+                scheduleGifAnimation(charState);
+            }
+            
+            updateCounter();
+        }
+
+        function calculateSize(sizeValue) {
+            const minSize = 60;
+            const maxSize = Math.min(containerRect.width, containerRect.height) / 2;
+            return minSize + ((sizeValue - 1) / 49) * (maxSize - minSize);
+        }
+
+        function getRandomPosition(areaType, size) {
+            const bgLeft = backgroundRect.left;
+            const bgRight = backgroundRect.right;
+            const bgTop = backgroundRect.top;
+            const bgBottom = backgroundRect.bottom;
+            const bgWidth = bgRight - bgLeft;
+            const bgHeight = bgBottom - bgTop;
+            
+            let minX = bgLeft;
+            let maxX = bgRight - size;
+            let minY, maxY;
+            
+            switch(areaType) {
+                case 1: // 下部1/3
+                    minY = bgTop + (bgHeight * 2/3);
+                    maxY = bgBottom - size;
+                    break;
+                case 2: // 中央1/3
+                    minY = bgTop + (bgHeight * 1/3);
+                    maxY = bgTop + (bgHeight * 2/3) - size;
+                    break;
+                case 3: // 上部1/3
+                    minY = bgTop;
+                    maxY = bgTop + (bgHeight * 1/3) - size;
+                    break;
+                default:
+                    minY = bgTop + (bgHeight * 2/3);
+                    maxY = bgBottom - size;
+            }
+            
+            return {
+                x: Math.random() * (maxX - minX) + minX,
+                y: Math.random() * (maxY - minY) + minY
+            };
+        }
+
+        function setupCharacterEvents(charState) {
+            charState.element.addEventListener('click', (e) => {
+                e.stopPropagation();
+                charState.clickCount++;
+                
+                if (charState.clickTimer) {
+                    clearTimeout(charState.clickTimer);
+                }
+                
+                if (charState.clickCount === 1) {
+                    charState.clickTimer = setTimeout(() => {
+                        showEmojis(charState);
+                        charState.clickCount = 0;
+                    }, 300);
+                } else if (charState.clickCount === 2) {
+                    showOverlay(charState.data);
+                    charState.clickCount = 0;
+                }
+            });
+        }
+
+        function showEmojis(charState) {
+            const rect = charState.element.getBoundingClientRect();
+            const emojis = charState.data.emoji;
+            
+            emojis.forEach((emoji, index) => {
+                setTimeout(() => {
+                    const emojiEl = document.createElement('div');
+                    emojiEl.className = 'emoji';
+                    emojiEl.textContent = emoji;
+                    
+                    const driftX = (Math.random() - 0.5) * 100;
+                    emojiEl.style.setProperty('--drift-x', driftX + 'px');
+                    
+                    emojiEl.style.left = (rect.left + rect.width / 2 - 15) + 'px';
+                    emojiEl.style.top = (rect.top - 10) + 'px';
+                    
+                    document.body.appendChild(emojiEl);
+                    
+                    setTimeout(() => {
+                        emojiEl.remove();
+                    }, 2000);
+                }, index * 200);
+            });
+        }
+
+        function setupOverlay() {
+            const overlay = document.getElementById('overlay');
+            const closeBtn = document.getElementById('close-btn');
+            
+            closeBtn.addEventListener('click', () => {
+                overlay.classList.remove('active');
+            });
+            
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) {
+                    overlay.classList.remove('active');
+                }
+            });
+        }
+
+        function showOverlay(charData) {
+            const overlay = document.getElementById('overlay');
+            const overlayImage = document.getElementById('overlay-image');
+            
+            overlayImage.src = charData.detailImage;
+            overlay.classList.add('active');
+        }
+
+        function startCharacterBehavior(charState) {
+            const behave = () => {
+                if (charState.data.moveType === 1) {
+                    // ほとんど動かない
+                    const waitTime = randomTime(charState.data.restTime) * 3;
+                    setTimeout(() => {
+                        if (Math.random() > 0.8) {
+                            moveCharacter(charState, false);
+                        }
+                        behave();
+                    }, waitTime);
+                } else {
+                    const shouldMove = Math.random() > 0.5;
+                    
+                    if (shouldMove) {
+                        const isJump = charState.data.moveType === 3;
+                        moveCharacter(charState, isJump);
+                        const moveTime = randomTime(charState.data.moveTime);
+                        setTimeout(() => {
+                            stopCharacter(charState);
+                            const restTime = randomTime(charState.data.restTime);
+                            setTimeout(behave, restTime);
+                        }, moveTime);
+                    } else {
+                        const restTime = randomTime(charState.data.restTime);
+                        setTimeout(behave, restTime);
+                    }
+                }
+            };
+            
+            behave();
+        }
+
+        function moveCharacter(charState, isJump) {
+            charState.isMoving = true;
+            
+            const newPos = getRandomPosition(charState.data.areaType, charState.size);
+            charState.targetX = newPos.x;
+            charState.targetY = newPos.y;
+            
+            const direction = newPos.x > charState.x ? 1 : -1;
+            if (direction !== charState.lastDirection) {
+                charState.lastDirection = direction;
+                if (direction === 1) {
+                    charState.element.classList.add('flipped');
+                } else {
+                    charState.element.classList.remove('flipped');
+                }
+            }
+            
+            if (isJump) {
+                animateJump(charState);
+            } else {
+                animateSlide(charState);
+            }
+        }
+
+        function animateSlide(charState) {
+            const animate = () => {
+                if (!charState.isMoving) return;
+                
+                const dx = charState.targetX - charState.x;
+                const dy = charState.targetY - charState.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 2) {
+                    charState.x = charState.targetX;
+                    charState.y = charState.targetY;
+                    updateCharacterPosition(charState);
+                    return;
+                }
+                
+                const speed = 1 + Math.random() * 1;
+                charState.x += (dx / distance) * speed;
+                charState.y += (dy / distance) * speed;
+                
+                updateCharacterPosition(charState);
+                requestAnimationFrame(animate);
+            };
+            
+            animate();
+        }
+
+        function animateJump(charState) {
+            const startX = charState.x;
+            const startY = charState.y;
+            const endX = charState.targetX;
+            const endY = charState.targetY;
+            const duration = 500 + Math.random() * 300;
+            const startTime = Date.now();
+            
+            const animate = () => {
+                if (!charState.isMoving) return;
+                
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const easeProgress = 0.5 - Math.cos(progress * Math.PI) / 2;
+                
+                charState.x = startX + (endX - startX) * easeProgress;
+                charState.y = startY + (endY - startY) * easeProgress;
+                
+                const jumpHeight = 30 * Math.sin(progress * Math.PI);
+                charState.element.style.transform = `translateY(${-jumpHeight}px)`;
+                
+                updateCharacterPosition(charState);
+                
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    charState.element.style.transform = '';
+                    
+                    if (charState.isMoving && Math.random() > 0.3) {
+                        const newPos = getRandomPosition(charState.data.areaType, charState.size);
+                        charState.targetX = newPos.x;
+                        charState.targetY = newPos.y;
+                        
+                        const direction = newPos.x > charState.x ? 1 : -1;
+                        if (direction !== charState.lastDirection) {
+                            charState.lastDirection = direction;
+                            if (direction === 1) {
+                                charState.element.classList.add('flipped');
+                            } else {
+                                charState.element.classList.remove('flipped');
+                            }
+                        }
+                        
+                        setTimeout(() => animateJump(charState), 100);
+                    }
+                }
+            };
+            
+            animate();
+        }
+
+        function stopCharacter(charState) {
+            charState.isMoving = false;
+        }
+
+        function updateCharacterPosition(charState) {
+            charState.element.style.left = charState.x + 'px';
+            charState.element.style.top = charState.y + 'px';
+        }
+
+        function randomTime(baseTime) {
+            const variation = baseTime * 0.4;
+            return (baseTime + (Math.random() - 0.5) * variation) * 1000;
+        }
+
+        function scheduleGifAnimation(charState) {
+            const schedule = () => {
+                const delay = 10000 + Math.random() * 20000;
+                setTimeout(() => {
+                    playGif(charState);
+                    schedule();
+                }, delay);
+            };
+            schedule();
+        }
+
+        function playGif(charState) {
+            if (!charState.data.gifUrl) return;
+            
+            const gifEl = document.createElement('img');
+            gifEl.className = 'gif-overlay';
+            gifEl.src = charState.data.gifUrl;
+            charState.element.appendChild(gifEl);
+            
+            setTimeout(() => {
+                gifEl.remove();
+            }, charState.data.gifDuration);
+        }
+
+        function updateCounter() {
+            const counter = document.getElementById('counter');
+            counter.textContent = `${activeCharacters.length}/${characters.length}`;
+        }
+
+        function clearCharacters() {
+            activeCharacters.forEach(char => {
+                char.element.remove();
+            });
+            activeCharacters = [];
+        }
+
+        function repositionCharacters() {
+            activeCharacters.forEach(charState => {
+                const newPos = getRandomPosition(charState.data.areaType, charState.size);
+                charState.x = newPos.x;
+                charState.y = newPos.y;
+                updateCharacterPosition(charState);
+            });
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(init, 100);
+        });
+    </script>
+</body>
+</html>
