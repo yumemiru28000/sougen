@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>草原</title>
+    <title>草原の仲間たち</title>
     <style>
         * {
             margin: 0;
@@ -14,63 +14,34 @@
         body {
             overflow: hidden;
             font-family: 'Arial', sans-serif;
-            background-color: #88cc88;
+            background-color: #4a7c3c;
         }
 
-        #background-container {
-            position: fixed;
+        #grassland-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #4a7c3c;
+        }
+
+        #background {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
-            background-color: #88cc88;
+            justify-content: center;
         }
 
-        #background-image {
+        #background img {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
             display: block;
-        }
-
-        #game-area {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-        }
-
-        .character {
-            position: absolute;
-            cursor: pointer;
-            pointer-events: all;
-            transition: transform 0.1s;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        .character img {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
-
-        .emoji {
-            position: absolute;
-            font-size: 24px;
-            pointer-events: none;
-            z-index: 1000;
-        }
-
-        .gif-overlay {
-            position: absolute;
-            pointer-events: none;
-            z-index: 100;
         }
 
         #character-counter {
@@ -78,28 +49,92 @@
             top: 20px;
             left: 20px;
             background: rgba(255, 255, 255, 0.9);
-            padding: 15px 20px;
-            border-radius: 15px;
-            font-size: 20px;
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-size: 18px;
             font-weight: bold;
-            color: #333;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            z-index: 2000;
+            color: #2d5016;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+
+        .character {
+            position: absolute;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            user-select: none;
+            -webkit-user-select: none;
+            will-change: transform;
+        }
+
+        .character img {
+            width: 100%;
+            height: 100%;
             pointer-events: none;
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .character:hover {
+            transform: scale(1.05);
+        }
+
+        .emoji-particle {
+            position: absolute;
+            font-size: 24px;
+            pointer-events: none;
+            z-index: 1000;
+            animation: floatEmoji 2s ease-out forwards;
+        }
+
+        @keyframes floatEmoji {
+            0% {
+                opacity: 1;
+                transform: translateY(0) translateX(0) scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-120px) translateX(var(--drift-x)) scale(1.2);
+            }
+        }
+
+        .heart-particle {
+            position: absolute;
+            font-size: 16px;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.7;
+            animation: gentleFloat 3s ease-out infinite;
+        }
+
+        @keyframes gentleFloat {
+            0% {
+                opacity: 0.7;
+                transform: translateY(0) translateX(0);
+            }
+            50% {
+                opacity: 0.4;
+                transform: translateY(-30px) translateX(10px);
+            }
+            100% {
+                opacity: 0.2;
+                transform: translateY(-60px) translateX(-5px);
+            }
         }
 
         #overlay {
+            display: none;
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
+            width: 100vw;
+            height: 100vh;
             background: rgba(0, 0, 0, 0.8);
-            display: none;
+            z-index: 2000;
             justify-content: center;
             align-items: center;
-            z-index: 3000;
-            animation: fadeIn 0.3s;
+            animation: fadeIn 0.3s ease;
         }
 
         @keyframes fadeIn {
@@ -107,23 +142,33 @@
             to { opacity: 1; }
         }
 
+        #overlay.active {
+            display: flex;
+        }
+
         #overlay-content {
             position: relative;
             max-width: 90%;
             max-height: 90%;
-            animation: scaleIn 0.3s;
+            animation: scaleIn 0.3s ease;
         }
 
         @keyframes scaleIn {
-            from { transform: scale(0.8); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
         }
 
         #overlay-content img {
             max-width: 100%;
             max-height: 90vh;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
         }
 
         #close-overlay {
@@ -137,487 +182,594 @@
             border-radius: 50%;
             font-size: 24px;
             cursor: pointer;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             transition: transform 0.2s, background 0.2s;
+            font-weight: bold;
+            color: #333;
         }
 
         #close-overlay:hover {
-            transform: scale(1.1);
-            background: #f0f0f0;
+            transform: scale(1.1) rotate(90deg);
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .gif-overlay {
+            position: absolute;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
         }
     </style>
 </head>
 <body>
-    <div id="background-container">
-        <img id="background-image" src="sibahu1.png" alt="草原">
+    <div id="grassland-container">
+        <div id="background">
+            <img src="sibahu1.png" alt="草原" id="grass-bg">
+        </div>
+        <div id="character-counter">0/0</div>
     </div>
-    
-    <div id="game-area"></div>
-    
-    <div id="character-counter">0/0</div>
-    
+
     <div id="overlay">
         <div id="overlay-content">
             <button id="close-overlay">×</button>
-            <img id="detail-image" src="" alt="詳細">
+            <img id="overlay-image" src="" alt="キャラクター詳細">
         </div>
     </div>
 
     <script>
-        // キャラクターの定義
+        // ========== キャラクター設定 ==========
         const characters = [
             {
                 name: 'うとうと',
                 image: 'cara1.png',
                 detailImage: 'cara1.png',
+                emoji: ['💕', '✨', '🌸'],
                 size: 25,
-                emoji: ['💕', '✨', '💖'],
-                movementType: 3, // ぴょんぴょん
-                moveTime: 3,
-                restTime: 4,
-                areaType: 1, // 下部1/3
+                moveType: 3, // ぴょんぴょん跳ねる
+                moveTime: 3, // 移動時間（秒）
+                restTime: 2, // 休憩時間（秒）
+                moveArea: 1, // 下部1/3
                 affection: 2, // カーソルに近づく
-                gifUrl: '', // GIFがある場合はURLを指定
-                gifDuration: 3000
+                gifImage: '', // 例: 'cara1.gif'
+                gifDuration: 2000, // gif表示時間（ミリ秒）
             },
             {
                 name: 'すみれ',
                 image: 'cara2.png',
                 detailImage: 'cara2.png',
+                emoji: ['😺', '🐾', '💛'],
                 size: 20,
-                emoji: ['😺', '💤', '🐟'],
-                movementType: 2, // すーっと移動
-                moveTime: 5,
-                restTime: 6,
-                areaType: 2, // 中央1/3
-                affection: 3, // クリックで好感度UP
-                gifUrl: '',
-                gifDuration: 2500
+                moveType: 2, // すーっと滑る
+                moveTime: 4,
+                restTime: 3,
+                moveArea: 2, // 中央1/3
+                affection: 3, // クリックで懐く
+                gifImage: '',
+                gifDuration: 2000,
             },
             {
-                name: 'ひつじ',
+                name: 'ことりちゃん',
                 image: 'cara3.png',
                 detailImage: 'cara3.png',
-                size: 30,
-                emoji: ['🌸', '☁️', '💚'],
-                movementType: 2,
-                moveTime: 4,
-                restTime: 5,
-                areaType: 1,
-                affection: 1, // カーソルから逃げる
-                gifUrl: '',
-                gifDuration: 3000
+                emoji: ['🎵', '🌈', '💙'],
+                size: 15,
+                moveType: 2,
+                moveTime: 2,
+                restTime: 1,
+                moveArea: 3, // 上部2/3
+                affection: 4, // 愛着度機能なし
+                gifImage: '',
+                gifDuration: 2000,
             },
             {
-                name: 'りす',
+                name: 'くまくん',
                 image: 'cara4.png',
                 detailImage: 'cara4.png',
-                size: 15,
-                emoji: ['🌰', '⭐', '🍂'],
-                movementType: 3,
-                moveTime: 2,
-                restTime: 3,
-                areaType: 3, // 上部1/3
-                affection: 4, // なし
-                gifUrl: '',
-                gifDuration: 2000
+                emoji: ['🍯', '💚', '🌟'],
+                size: 35,
+                moveType: 2,
+                moveTime: 5,
+                restTime: 4,
+                moveArea: 1,
+                affection: 1, // 逃げる
+                gifImage: '',
+                gifDuration: 2000,
             },
             {
-                name: 'きつね',
+                name: 'きつねさん',
                 image: 'cara5.png',
                 detailImage: 'cara5.png',
-                size: 28,
-                emoji: ['🔥', '🍁', '✨'],
-                movementType: 2,
-                moveTime: 4,
-                restTime: 4,
-                areaType: 2,
+                emoji: ['🦊', '🔥', '🧡'],
+                size: 30,
+                moveType: 3,
+                moveTime: 3,
+                restTime: 2,
+                moveArea: 2,
                 affection: 2,
-                gifUrl: '',
-                gifDuration: 3000
-            }
+                gifImage: '',
+                gifDuration: 2000,
+            },
         ];
 
+        // ========== グローバル変数 ==========
         let activeCharacters = [];
-        let mouseX = -1000;
-        let mouseY = -1000;
-        const ROTATION_INTERVAL = 300000; // 5分 = 300000ms
+        let mouseX = 0;
+        let mouseY = 0;
+        const ROTATION_INTERVAL = 5 * 60 * 1000; // 5分
+        const MAX_ACTIVE = 3;
 
-        // マウス位置の追跡
-        document.addEventListener('mousemove', (e) => {
-            mouseX = e.clientX;
-            mouseY = e.clientY;
-        });
-
-        // キャラクタークラス
-        class Character {
-            constructor(data) {
-                this.data = data;
-                this.element = document.createElement('div');
-                this.element.className = 'character';
-                
-                this.img = document.createElement('img');
-                this.img.src = data.image;
-                this.element.appendChild(this.img);
-                
-                const baseSize = 80;
-                this.size = baseSize * (data.size / 25);
-                this.element.style.width = this.size + 'px';
-                this.element.style.height = this.size + 'px';
-                
-                this.resetPosition();
-                
-                this.isMoving = false;
-                this.facingRight = false;
-                this.affectionBoosted = false;
-                this.affectionBoostTimer = null;
-                
-                this.setupEvents();
-                this.startBehavior();
-                
-                if (data.gifUrl) {
-                    this.startGifAnimation();
-                }
-                
-                document.getElementById('game-area').appendChild(this.element);
-            }
-            
-            resetPosition() {
-                const area = this.getMovementArea();
-                this.x = area.minX + Math.random() * (area.maxX - area.minX);
-                this.y = area.minY + Math.random() * (area.maxY - area.minY);
-                this.updatePosition();
-            }
-            
-            getMovementArea() {
-                const windowWidth = window.innerWidth;
-                const windowHeight = window.innerHeight;
-                const margin = this.size;
-                
-                let minY, maxY;
-                
-                if (this.data.areaType === 1) { // 下部1/3
-                    minY = windowHeight * 2/3;
-                    maxY = windowHeight - margin;
-                } else if (this.data.areaType === 2) { // 中央1/3
-                    minY = windowHeight * 1/3;
-                    maxY = windowHeight * 2/3;
-                } else { // 上部1/3
-                    minY = margin;
-                    maxY = windowHeight * 1/3;
-                }
-                
-                return {
-                    minX: margin,
-                    maxX: windowWidth - margin,
-                    minY: Math.max(minY, margin),
-                    maxY: Math.min(maxY, windowHeight - margin)
-                };
-            }
-            
-            updatePosition() {
-                const area = this.getMovementArea();
-                
-                // 範囲外チェック
-                if (this.x < area.minX) this.x = area.minX;
-                if (this.x > area.maxX) this.x = area.maxX;
-                if (this.y < area.minY) this.y = area.minY;
-                if (this.y > area.maxY) this.y = area.maxY;
-                
-                this.element.style.left = this.x + 'px';
-                this.element.style.top = this.y + 'px';
-            }
-            
-            setupEvents() {
-                let clickCount = 0;
-                let clickTimer = null;
-                
-                this.element.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    clickCount++;
-                    
-                    if (clickTimer) clearTimeout(clickTimer);
-                    
-                    if (clickCount === 1) {
-                        clickTimer = setTimeout(() => {
-                            this.onSingleClick();
-                            clickCount = 0;
-                        }, 300);
-                    } else if (clickCount === 2) {
-                        clearTimeout(clickTimer);
-                        this.onDoubleClick();
-                        clickCount = 0;
-                    }
-                });
-            }
-            
-            onSingleClick() {
-                // 絵文字アニメーション
-                const emojis = this.data.emoji;
-                emojis.forEach((emoji, index) => {
-                    setTimeout(() => {
-                        this.createEmojiAnimation(emoji);
-                    }, index * 300);
-                });
-                
-                // 好感度タイプ3の処理
-                if (this.data.affection === 3 && !this.affectionBoosted) {
-                    if (Math.random() < 0.3) { // 30%の確率
-                        this.affectionBoosted = true;
-                        const duration = (5 + Math.random() * 5) * 1000;
-                        
-                        if (this.affectionBoostTimer) clearTimeout(this.affectionBoostTimer);
-                        this.affectionBoostTimer = setTimeout(() => {
-                            this.affectionBoosted = false;
-                        }, duration);
-                        
-                        // 控えめなハートエフェクト
-                        this.startAffectionHearts(duration);
-                    }
-                }
-            }
-            
-            startAffectionHearts(duration) {
-                const interval = setInterval(() => {
-                    if (!this.affectionBoosted) {
-                        clearInterval(interval);
-                        return;
-                    }
-                    this.createEmojiAnimation('💕', true);
-                }, 2000);
-            }
-            
-            onDoubleClick() {
-                const overlay = document.getElementById('overlay');
-                const detailImage = document.getElementById('detail-image');
-                detailImage.src = this.data.detailImage;
-                overlay.style.display = 'flex';
-            }
-            
-            createEmojiAnimation(emoji, isSmall = false) {
-                const emojiEl = document.createElement('div');
-                emojiEl.className = 'emoji';
-                emojiEl.textContent = emoji;
-                emojiEl.style.left = (this.x + this.size / 2) + 'px';
-                emojiEl.style.top = (this.y + this.size / 2) + 'px';
-                if (isSmall) {
-                    emojiEl.style.fontSize = '16px';
-                    emojiEl.style.opacity = '0.7';
-                }
-                document.body.appendChild(emojiEl);
-                
-                const duration = 2000;
-                const startTime = Date.now();
-                const swingAmount = 30;
-                
-                const animate = () => {
-                    const elapsed = Date.now() - startTime;
-                    const progress = elapsed / duration;
-                    
-                    if (progress >= 1) {
-                        emojiEl.remove();
-                        return;
-                    }
-                    
-                    const x = Math.sin(progress * Math.PI * 2) * swingAmount;
-                    const y = -progress * 100;
-                    const opacity = 1 - progress;
-                    
-                    emojiEl.style.transform = `translate(${x}px, ${y}px)`;
-                    emojiEl.style.opacity = opacity;
-                    
-                    requestAnimationFrame(animate);
-                };
-                
-                animate();
-            }
-            
-            startBehavior() {
-                if (this.data.movementType === 1) {
-                    // 基本動かない
-                    return;
-                }
-                
-                this.behaviorLoop();
-            }
-            
-            behaviorLoop() {
-                const shouldMove = Math.random() < 0.5;
-                
-                if (shouldMove && this.data.movementType !== 1) {
-                    const baseMoveTime = this.data.moveTime * 1000;
-                    const moveTime = baseMoveTime * (0.7 + Math.random() * 0.6);
-                    this.startMoving(moveTime);
-                } else {
-                    const baseRestTime = this.data.restTime * 1000;
-                    const restTime = baseRestTime * (0.7 + Math.random() * 0.6);
-                    setTimeout(() => this.behaviorLoop(), restTime);
-                }
-            }
-            
-            startMoving(duration) {
-                this.isMoving = true;
-                const startTime = Date.now();
-                const area = this.getMovementArea();
-                
-                const targetX = area.minX + Math.random() * (area.maxX - area.minX);
-                const targetY = area.minY + Math.random() * (area.maxY - area.minY);
-                
-                // 向きの設定
-                if (targetX > this.x && !this.facingRight) {
-                    this.facingRight = true;
-                    this.element.style.transform = 'scaleX(-1)';
-                } else if (targetX < this.x && this.facingRight) {
-                    this.facingRight = false;
-                    this.element.style.transform = 'scaleX(1)';
-                }
-                
-                const move = () => {
-                    const elapsed = Date.now() - startTime;
-                    
-                    if (elapsed >= duration) {
-                        this.isMoving = false;
-                        this.behaviorLoop();
-                        return;
-                    }
-                    
-                    // 好感度の影響
-                    let finalTargetX = targetX;
-                    let finalTargetY = targetY;
-                    
-                    const currentAffection = (this.data.affection === 3 && this.affectionBoosted) ? 2 : this.data.affection;
-                    
-                    if (currentAffection === 1 && mouseX > 0) { // 逃げる
-                        const dx = this.x - mouseX;
-                        const dy = this.y - mouseY;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (dist < 200) {
-                            finalTargetX = this.x + (dx / dist) * 100 * (1 + Math.random() * 0.5);
-                            finalTargetY = this.y + (dy / dist) * 100 * (1 + Math.random() * 0.5);
-                        }
-                    } else if (currentAffection === 2 && mouseX > 0) { // 近づく
-                        const dx = mouseX - this.x;
-                        const dy = mouseY - this.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
-                        
-                        if (dist > 100 && Math.random() < 0.3) {
-                            finalTargetX = this.x + (dx / dist) * 80 * (0.8 + Math.random() * 0.4);
-                            finalTargetY = this.y + (dy / dist) * 80 * (0.8 + Math.random() * 0.4);
-                        }
-                    }
-                    
-                    const progress = elapsed / duration;
-                    
-                    if (this.data.movementType === 2) { // すーっと移動
-                        this.x += (finalTargetX - this.x) * 0.02;
-                        this.y += (finalTargetY - this.y) * 0.02;
-                    } else if (this.data.movementType === 3) { // ぴょんぴょん
-                        const jumpInterval = 500;
-                        const jumpPhase = (elapsed % jumpInterval) / jumpInterval;
-                        
-                        if (jumpPhase < 0.5) {
-                            this.x += (finalTargetX - this.x) * 0.04;
-                            this.y += (finalTargetY - this.y) * 0.04;
-                            
-                            const jumpHeight = Math.sin(jumpPhase * Math.PI * 2) * 15;
-                            this.element.style.transform = `${this.facingRight ? 'scaleX(-1)' : ''} translateY(${jumpHeight}px)`;
-                        }
-                    }
-                    
-                    this.updatePosition();
-                    requestAnimationFrame(move);
-                };
-                
-                move();
-            }
-            
-            startGifAnimation() {
-                const animate = () => {
-                    const delay = (10 + Math.random() * 20) * 1000;
-                    setTimeout(() => {
-                        this.showGif();
-                        animate();
-                    }, delay);
-                };
-                animate();
-            }
-            
-            showGif() {
-                if (!this.data.gifUrl) return;
-                
-                const gifEl = document.createElement('img');
-                gifEl.className = 'gif-overlay';
-                gifEl.src = this.data.gifUrl;
-                gifEl.style.left = this.element.style.left;
-                gifEl.style.top = this.element.style.top;
-                gifEl.style.width = this.size + 'px';
-                gifEl.style.height = this.size + 'px';
-                
-                document.getElementById('game-area').appendChild(gifEl);
-                
-                setTimeout(() => {
-                    gifEl.remove();
-                }, this.data.gifDuration);
-            }
-            
-            destroy() {
-                this.element.remove();
-                if (this.affectionBoostTimer) clearTimeout(this.affectionBoostTimer);
-            }
-        }
-
-        // オーバーレイを閉じる
-        document.getElementById('close-overlay').addEventListener('click', () => {
-            document.getElementById('overlay').style.display = 'none';
-        });
-
-        document.getElementById('overlay').addEventListener('click', (e) => {
-            if (e.target.id === 'overlay') {
-                document.getElementById('overlay').style.display = 'none';
-            }
-        });
-
-        // キャラクターのローテーション
-        function rotateCharacters() {
-            // 既存のキャラクターを削除
-            activeCharacters.forEach(char => char.destroy());
-            activeCharacters = [];
-            
-            // ランダムに3匹選択
-            const shuffled = [...characters].sort(() => Math.random() - 0.5);
-            const selected = shuffled.slice(0, Math.min(3, characters.length));
-            
-            selected.forEach(charData => {
-                activeCharacters.push(new Character(charData));
-            });
-            
+        // ========== 初期化 ==========
+        function init() {
             updateCounter();
+            selectRandomCharacters();
+            setInterval(rotateCharacters, ROTATION_INTERVAL);
+            
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            document.getElementById('close-overlay').addEventListener('click', closeOverlay);
+            document.getElementById('overlay').addEventListener('click', (e) => {
+                if (e.target === document.getElementById('overlay')) {
+                    closeOverlay();
+                }
+            });
         }
 
-        // カウンター更新
+        // ========== カウンター更新 ==========
         function updateCounter() {
             const counter = document.getElementById('character-counter');
             counter.textContent = `${activeCharacters.length}/${characters.length}`;
         }
 
-        // 初期化
-        rotateCharacters();
-        setInterval(rotateCharacters, ROTATION_INTERVAL);
-
-        // リサイズ対応
-        window.addEventListener('resize', () => {
+        // ========== ランダムキャラクター選択 ==========
+        function selectRandomCharacters() {
+            // 既存のキャラクターを削除
             activeCharacters.forEach(char => {
-                const area = char.getMovementArea();
-                if (char.x < area.minX || char.x > area.maxX || 
-                    char.y < area.minY || char.y > area.maxY) {
-                    char.resetPosition();
+                if (char.element) {
+                    char.element.remove();
                 }
+                if (char.moveInterval) clearInterval(char.moveInterval);
+                if (char.gifInterval) clearInterval(char.gifInterval);
+                if (char.affectionInterval) clearInterval(char.affectionInterval);
             });
-        });
+            activeCharacters = [];
+
+            // ランダムに3匹選択
+            const shuffled = [...characters].sort(() => Math.random() - 0.5);
+            const selected = shuffled.slice(0, Math.min(MAX_ACTIVE, characters.length));
+
+            selected.forEach(char => {
+                createCharacter(char);
+            });
+
+            updateCounter();
+        }
+
+        // ========== キャラクター回転 ==========
+        function rotateCharacters() {
+            selectRandomCharacters();
+        }
+
+        // ========== キャラクター作成 ==========
+        function createCharacter(charData) {
+            const container = document.getElementById('grassland-container');
+            const char = { ...charData };
+            
+            // サイズ計算（1-50 → 実際のピクセルサイズ）
+            const minSize = 60;
+            const maxSize = window.innerHeight / 2;
+            char.actualSize = minSize + (char.size / 50) * (maxSize - minSize);
+
+            // キャラクター要素作成
+            const element = document.createElement('div');
+            element.className = 'character';
+            element.style.width = `${char.actualSize}px`;
+            element.style.height = `${char.actualSize}px`;
+            
+            const img = document.createElement('img');
+            img.src = char.image;
+            img.alt = char.name;
+            element.appendChild(img);
+
+            // 初期位置設定
+            const bounds = getMovementBounds(char.moveArea);
+            char.x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
+            char.y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
+            char.direction = 1; // 1: 右向き, -1: 左向き
+            char.isMoving = false;
+            char.isFriendly = (char.affection === 3) ? false : (char.affection === 2);
+            char.friendlyUntil = 0;
+
+            element.style.left = `${char.x}px`;
+            element.style.top = `${char.y}px`;
+
+            // イベントリスナー
+            element.addEventListener('click', (e) => handleClick(e, char));
+            element.addEventListener('dblclick', (e) => handleDoubleClick(e, char));
+
+            container.appendChild(element);
+            char.element = element;
+            char.img = img;
+
+            activeCharacters.push(char);
+
+            // 動き開始
+            if (char.moveType > 1) {
+                startMovement(char);
+            }
+
+            // GIF切り替え
+            if (char.gifImage) {
+                startGifCycle(char);
+            }
+
+            // 愛着度システム
+            if (char.affection === 2 || char.affection === 3) {
+                startAffectionBehavior(char);
+            } else if (char.affection === 1) {
+                startAvoidanceBehavior(char);
+            }
+        }
+
+        // ========== 移動範囲取得 ==========
+        function getMovementBounds(moveArea) {
+            const w = window.innerWidth;
+            const h = window.innerHeight;
+            
+            let minY, maxY;
+            if (moveArea === 1) { // 下部1/3
+                minY = h * 2/3;
+                maxY = h;
+            } else if (moveArea === 2) { // 中央1/3
+                minY = h * 1/3;
+                maxY = h * 2/3;
+            } else { // 上部2/3
+                minY = 0;
+                maxY = h * 2/3;
+            }
+
+            return {
+                minX: 0,
+                maxX: w,
+                minY: minY,
+                maxY: maxY
+            };
+        }
+
+        // ========== 移動システム ==========
+        function startMovement(char) {
+            const move = () => {
+                if (char.isMoving) {
+                    const duration = (char.moveTime + (Math.random() - 0.5)) * 1000;
+                    setTimeout(() => {
+                        char.isMoving = false;
+                        rest();
+                    }, Math.max(1000, duration));
+                    
+                    if (char.moveType === 2) {
+                        smoothMove(char);
+                    } else if (char.moveType === 3) {
+                        hopMove(char);
+                    }
+                } else {
+                    rest();
+                }
+            };
+
+            const rest = () => {
+                const duration = (char.restTime + (Math.random() - 0.5)) * 1000;
+                setTimeout(() => {
+                    char.isMoving = true;
+                    move();
+                }, Math.max(500, duration));
+            };
+
+            char.isMoving = Math.random() > 0.5;
+            move();
+        }
+
+        // ========== スムーズ移動 ==========
+        function smoothMove(char) {
+            const bounds = getMovementBounds(char.moveArea);
+            const targetX = Math.random() * (bounds.maxX - bounds.minX - char.actualSize) + bounds.minX;
+            const targetY = Math.random() * (bounds.maxY - bounds.minY - char.actualSize) + bounds.minY;
+            
+            const duration = (char.moveTime + (Math.random() - 0.5) * 0.5) * 1000;
+            const startX = char.x;
+            const startY = char.y;
+            const startTime = Date.now();
+
+            // 向き設定
+            if (targetX > char.x && char.direction === -1) {
+                char.img.style.transform = 'scaleX(1)';
+                char.direction = 1;
+            } else if (targetX < char.x && char.direction === 1) {
+                char.img.style.transform = 'scaleX(-1)';
+                char.direction = -1;
+            }
+
+            const animate = () => {
+                if (!char.isMoving) return;
+
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = easeInOutQuad(progress);
+
+                char.x = startX + (targetX - startX) * easeProgress;
+                char.y = startY + (targetY - startY) * easeProgress;
+
+                constrainPosition(char);
+                updatePosition(char);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            animate();
+        }
+
+        // ========== ホップ移動 ==========
+        function hopMove(char) {
+            const bounds = getMovementBounds(char.moveArea);
+            let hopsRemaining = Math.floor(Math.random() * 5) + 3;
+            
+            const hop = () => {
+                if (!char.isMoving || hopsRemaining <= 0) return;
+
+                const hopDistance = 30 + Math.random() * 50;
+                const angle = Math.random() * Math.PI * 2;
+                const targetX = char.x + Math.cos(angle) * hopDistance;
+                const targetY = char.y + Math.sin(angle) * hopDistance;
+
+                // 向き設定
+                if (targetX > char.x && char.direction === -1) {
+                    char.img.style.transform = 'scaleX(1)';
+                    char.direction = 1;
+                } else if (targetX < char.x && char.direction === 1) {
+                    char.img.style.transform = 'scaleX(-1)';
+                    char.direction = -1;
+                }
+
+                const duration = 400 + Math.random() * 200;
+                const startX = char.x;
+                const startY = char.y;
+                const startTime = Date.now();
+
+                const animateHop = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    char.x = startX + (targetX - startX) * progress;
+                    char.y = startY + (targetY - startY) * progress;
+
+                    // ジャンプアニメーション
+                    const jumpHeight = Math.sin(progress * Math.PI) * 20;
+                    constrainPosition(char);
+                    char.element.style.left = `${char.x}px`;
+                    char.element.style.top = `${char.y - jumpHeight}px`;
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animateHop);
+                    } else {
+                        hopsRemaining--;
+                        if (char.isMoving && hopsRemaining > 0) {
+                            setTimeout(hop, 200 + Math.random() * 300);
+                        }
+                    }
+                };
+
+                animateHop();
+            };
+
+            hop();
+        }
+
+        // ========== イージング関数 ==========
+        function easeInOutQuad(t) {
+            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+        }
+
+        // ========== 位置制約 ==========
+        function constrainPosition(char) {
+            const bounds = getMovementBounds(char.moveArea);
+            
+            if (char.x < bounds.minX) char.x = bounds.minX;
+            if (char.x > bounds.maxX - char.actualSize) char.x = bounds.maxX - char.actualSize;
+            if (char.y < bounds.minY) char.y = bounds.minY;
+            if (char.y > bounds.maxY - char.actualSize) char.y = bounds.maxY - char.actualSize;
+        }
+
+        // ========== 位置更新 ==========
+        function updatePosition(char) {
+            char.element.style.left = `${char.x}px`;
+            char.element.style.top = `${char.y}px`;
+        }
+
+        // ========== クリック処理 ==========
+        function handleClick(e, char) {
+            e.stopPropagation();
+            
+            // 絵文字エフェクト
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => {
+                    createEmojiParticle(char, i);
+                }, i * 200);
+            }
+
+            // 愛着度3の場合、一時的に懐く
+            if (char.affection === 3 && !char.isFriendly) {
+                if (Math.random() < 0.3) { // 30%の確率
+                    char.isFriendly = true;
+                    char.friendlyUntil = Date.now() + (10000 + Math.random() * 20000);
+                    startGentleHearts(char);
+                }
+            }
+        }
+
+        // ========== ダブルクリック処理 ==========
+        function handleDoubleClick(e, char) {
+            e.stopPropagation();
+            showOverlay(char);
+        }
+
+        // ========== 絵文字パーティクル ==========
+        function createEmojiParticle(char, index) {
+            const particle = document.createElement('div');
+            particle.className = 'emoji-particle';
+            particle.textContent = char.emoji[index % char.emoji.length];
+            
+            const driftX = (Math.random() - 0.5) * 60;
+            particle.style.setProperty('--drift-x', `${driftX}px`);
+            particle.style.left = `${char.x + char.actualSize / 2}px`;
+            particle.style.top = `${char.y + char.actualSize / 3}px`;
+            
+            document.getElementById('grassland-container').appendChild(particle);
+            
+            setTimeout(() => particle.remove(), 2000);
+        }
+
+        // ========== 控えめなハート ==========
+        function startGentleHearts(char) {
+            const interval = setInterval(() => {
+                if (!char.isFriendly || Date.now() > char.friendlyUntil) {
+                    clearInterval(interval);
+                    char.isFriendly = false;
+                    return;
+                }
+
+                if (Math.random() < 0.3) {
+                    const heart = document.createElement('div');
+                    heart.className = 'heart-particle';
+                    heart.textContent = '♡';
+                    heart.style.left = `${char.x + char.actualSize / 2}px`;
+                    heart.style.top = `${char.y + char.actualSize / 4}px`;
+                    
+                    document.getElementById('grassland-container').appendChild(heart);
+                    setTimeout(() => heart.remove(), 3000);
+                }
+            }, 2000);
+        }
+
+        // ========== オーバーレイ表示 ==========
+        function showOverlay(char) {
+            const overlay = document.getElementById('overlay');
+            const overlayImage = document.getElementById('overlay-image');
+            overlayImage.src = char.detailImage;
+            overlay.classList.add('active');
+        }
+
+        // ========== オーバーレイ閉じる ==========
+        function closeOverlay() {
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // ========== GIFサイクル ==========
+        function startGifCycle(char) {
+            setInterval(() => {
+                if (Math.random() < 0.2 && char.gifImage) { // 20%の確率
+                    const originalSrc = char.img.src;
+                    char.img.src = char.gifImage;
+                    
+                    setTimeout(() => {
+                        char.img.src = originalSrc;
+                    }, char.gifDuration);
+                }
+            }, 10000 + Math.random() * 10000);
+        }
+
+        // ========== 愛着度: 近づく ==========
+        function startAffectionBehavior(char) {
+            setInterval(() => {
+                if (!char.isMoving && char.moveType > 1) return;
+                if (char.affection === 3 && !char.isFriendly) return;
+                
+                if (Math.random() < 0.3) {
+                    const dx = mouseX - char.x - char.actualSize / 2;
+                    const dy = mouseY - char.y - char.actualSize / 2;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 100 && distance < 500) {
+                        const moveDistance = 50 + Math.random() * 50;
+                        const targetX = char.x + (dx / distance) * moveDistance;
+                        const targetY = char.y + (dy / distance) * moveDistance;
+                        
+                        moveTowardsTarget(char, targetX, targetY);
+                    }
+                }
+            }, 2000);
+        }
+
+        // ========== 愛着度: 逃げる ==========
+        function startAvoidanceBehavior(char) {
+            setInterval(() => {
+                if (!char.isMoving && char.moveType > 1) return;
+                
+                const dx = mouseX - char.x - char.actualSize / 2;
+                const dy = mouseY - char.y - char.actualSize / 2;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < 150 && Math.random() < 0.5) {
+                    const moveDistance = 80 + Math.random() * 70;
+                    const targetX = char.x - (dx / distance) * moveDistance;
+                    const targetY = char.y - (dy / distance) * moveDistance;
+                    
+                    moveTowardsTarget(char, targetX, targetY);
+                }
+            }, 1500);
+        }
+
+        // ========== ターゲットへ移動 ==========
+        function moveTowardsTarget(char, targetX, targetY) {
+            const bounds = getMovementBounds(char.moveArea);
+            targetX = Math.max(bounds.minX, Math.min(targetX, bounds.maxX - char.actualSize));
+            targetY = Math.max(bounds.minY, Math.min(targetY, bounds.maxY - char.actualSize));
+
+            // 向き設定
+            if (targetX > char.x && char.direction === -1) {
+                char.img.style.transform = 'scaleX(1)';
+                char.direction = 1;
+            } else if (targetX < char.x && char.direction === 1) {
+                char.img.style.transform = 'scaleX(-1)';
+                char.direction = -1;
+            }
+
+            const duration = 800 + Math.random() * 400;
+            const startX = char.x;
+            const startY = char.y;
+            const startTime = Date.now();
+
+            const animate = () => {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = easeInOutQuad(progress);
+
+                char.x = startX + (targetX - startX) * easeProgress;
+                char.y = startY + (targetY - startY) * easeProgress;
+
+                constrainPosition(char);
+                updatePosition(char);
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                }
+            };
+
+            animate();
+        }
+
+        // ========== 起動 ==========
+        init();
     </script>
 </body>
 </html>
