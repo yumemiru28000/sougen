@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>草原の仲間たち</title>
+    <title>架空動物の草原</title>
     <style>
         * {
             margin: 0;
@@ -12,17 +12,18 @@
         }
 
         body {
+            background: #87CEEB;
             overflow: hidden;
             font-family: 'Arial', sans-serif;
-            background-color: #4a7c3c;
+            width: 100vw;
+            height: 100vh;
         }
 
-        #grassland-container {
+        #container {
             position: relative;
             width: 100vw;
             height: 100vh;
             overflow: hidden;
-            background-color: #4a7c3c;
         }
 
         #background {
@@ -32,94 +33,71 @@
             width: 100%;
             height: 100%;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
+            background: #87CEEB;
         }
 
-        #background img {
+        #grassImage {
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
             display: block;
         }
 
-        #character-counter {
+        #characterCounter {
             position: fixed;
             top: 20px;
             left: 20px;
             background: rgba(255, 255, 255, 0.9);
             padding: 12px 20px;
-            border-radius: 25px;
+            border-radius: 20px;
             font-size: 18px;
             font-weight: bold;
             color: #2d5016;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
             z-index: 100;
-            backdrop-filter: blur(5px);
+            border: 3px solid #4a7c29;
         }
 
         .character {
             position: absolute;
             cursor: pointer;
             transition: transform 0.3s ease;
-            user-select: none;
-            -webkit-user-select: none;
-            will-change: transform;
+            z-index: 10;
         }
 
         .character img {
             width: 100%;
             height: 100%;
+            object-fit: contain;
             pointer-events: none;
-            image-rendering: -webkit-optimize-contrast;
-            image-rendering: crisp-edges;
         }
 
         .character:hover {
-            transform: scale(1.05);
+            transform: scale(1.1);
         }
 
-        .emoji-particle {
+        .character.flipped img {
+            transform: scaleX(-1);
+        }
+
+        .emoji-float {
             position: absolute;
-            font-size: 24px;
+            font-size: 30px;
             pointer-events: none;
-            z-index: 1000;
-            animation: floatEmoji 2s ease-out forwards;
+            z-index: 20;
+            animation: floatUp 2s ease-out forwards;
         }
 
-        @keyframes floatEmoji {
+        @keyframes floatUp {
             0% {
                 opacity: 1;
-                transform: translateY(0) translateX(0) scale(1);
+                transform: translateY(0) translateX(0);
             }
             100% {
                 opacity: 0;
-                transform: translateY(-120px) translateX(var(--drift-x)) scale(1.2);
-            }
-        }
-
-        .heart-particle {
-            position: absolute;
-            font-size: 16px;
-            pointer-events: none;
-            z-index: 999;
-            opacity: 0.7;
-            animation: gentleFloat 3s ease-out infinite;
-        }
-
-        @keyframes gentleFloat {
-            0% {
-                opacity: 0.7;
-                transform: translateY(0) translateX(0);
-            }
-            50% {
-                opacity: 0.4;
-                transform: translateY(-30px) translateX(10px);
-            }
-            100% {
-                opacity: 0.2;
-                transform: translateY(-60px) translateX(-5px);
+                transform: translateY(-150px) translateX(var(--sway));
             }
         }
 
@@ -130,646 +108,734 @@
             left: 0;
             width: 100vw;
             height: 100vh;
-            background: rgba(0, 0, 0, 0.8);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.3s ease;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            backdrop-filter: blur(5px);
         }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
-
-        #overlay.active {
-            display: flex;
-        }
-
-        #overlay-content {
-            position: relative;
-            max-width: 90%;
-            max-height: 90%;
-            animation: scaleIn 0.3s ease;
-        }
-
-        @keyframes scaleIn {
-            from {
-                transform: scale(0.8);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
-
-        #overlay-content img {
-            max-width: 100%;
+        #detailCard {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #fff9e6 0%, #ffe6f0 100%);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 600px;
             max-height: 90vh;
-            border-radius: 15px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            overflow-y: auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            border: 5px solid #ffb6c1;
         }
 
-        #close-overlay {
+        #closeBtn {
             position: absolute;
-            top: -15px;
-            right: -15px;
+            top: 15px;
+            right: 15px;
             width: 40px;
             height: 40px;
-            background: white;
+            background: #ff6b9d;
+            color: white;
             border: none;
             border-radius: 50%;
             font-size: 24px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
-            transition: transform 0.2s, background 0.2s;
             font-weight: bold;
-            color: #333;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: all 0.3s;
         }
 
-        #close-overlay:hover {
-            transform: scale(1.1) rotate(90deg);
-            background: #ff6b6b;
-            color: white;
+        #closeBtn:hover {
+            background: #ff4081;
+            transform: rotate(90deg);
+        }
+
+        .detail-header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 3px dashed #ffb6c1;
+            padding-bottom: 20px;
+        }
+
+        .detail-image {
+            width: 150px;
+            height: 150px;
+            object-fit: contain;
+            margin: 0 auto 20px;
+            display: block;
+            background: white;
+            border-radius: 50%;
+            padding: 15px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        }
+
+        .detail-name {
+            font-size: 36px;
+            font-weight: bold;
+            color: #ff6b9d;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+
+        .detail-creator {
+            font-size: 14px;
+            color: #888;
+            font-style: italic;
+        }
+
+        .detail-section {
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            border-left: 5px solid #ffb6c1;
+        }
+
+        .detail-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #ff6b9d;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .detail-value {
+            font-size: 16px;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .message-card {
+            background: linear-gradient(135deg, #fff 0%, #fffacd 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 3px solid #ffd700;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
+        .message-card::before {
+            content: "💌";
+            position: absolute;
+            top: -20px;
+            left: 20px;
+            font-size: 40px;
+        }
+
+        .message-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b9d;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .message-text {
+            font-size: 16px;
+            color: #555;
+            line-height: 1.8;
+            white-space: pre-wrap;
         }
 
         .gif-overlay {
             position: absolute;
             pointer-events: none;
-            z-index: 10;
+            z-index: 15;
         }
 
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+        .gif-overlay img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
         }
     </style>
 </head>
 <body>
-    <div id="grassland-container">
+    <div id="container">
         <div id="background">
-            <img src="sibahu1.png" alt="草原" id="grass-bg">
+            <img id="grassImage" src="sibahu1.png" alt="草原">
         </div>
-        <div id="character-counter">0/0</div>
+        <div id="characterCounter">0/0</div>
     </div>
 
     <div id="overlay">
-        <div id="overlay-content">
-            <button id="close-overlay">×</button>
-            <img id="overlay-image" src="" alt="キャラクター詳細">
+        <div id="detailCard">
+            <button id="closeBtn">×</button>
+            <div id="detailContent"></div>
         </div>
     </div>
 
     <script>
-        // ========== キャラクター設定 ==========
+        // ========== キャラクターデータ ==========
         const characters = [
             {
-                name: 'うとうと',
-                image: 'cara1.png',
-                detailImage: 'cara1.png',
-                emoji: ['💕', '✨', '🌸'],
-                size: 5,
-                moveType: 3, // ぴょんぴょん跳ねる
-                moveTime: 3, // 移動時間（秒）
-                restTime: 2, // 休憩時間（秒）
-                moveArea: 1, // 下部1/3
-                affection: 2, // カーソルに近づく
-                gifImage: '', // 例: 'cara1.gif'
-                gifDuration: 2000, // gif表示時間（ミリ秒）
-            },
-            {
-                name: 'すみれ',
-                image: 'cara2.png',
-                detailImage: 'cara2.png',
-                emoji: ['😺', '🐾', '💛'],
-                size: 4,
-                moveType: 2, // すーっと滑る
-                moveTime: 4,
-                restTime: 3,
-                moveArea: 2, // 中央1/3
-                affection: 3, // クリックで懐く
-                gifImage: '',
-                gifDuration: 2000,
-            },
-            {
-                name: 'ことりちゃん',
-                image: 'cara3.png',
-                detailImage: 'cara3.png',
-                emoji: ['🎵', '🌈', '💙'],
-                size: 15,
-                moveType: 2,
+                name: "ホッピー",
+                image: "character1.png",
+                emoji: "❤️",
+                movementType: 3,
                 moveTime: 2,
-                restTime: 1,
-                moveArea: 3, // 上部2/3
-                affection: 4, // 愛着度機能なし
-                gifImage: '',
-                gifDuration: 2000,
+                restTime: 3,
+                areaType: 1,
+                size: 25,
+                comesOnClick: 1,
+                gifUrl: "",
+                gifDuration: 3,
+                details: {
+                    personality: "元気いっぱいで好奇心旺盛。いつも跳ねています！",
+                    size: "中型（50cm）",
+                    ability: "高くジャンプできる",
+                    likes: "新鮮な野菜とお散歩",
+                    dislikes: "雷の音",
+                    environment: "明るい草原",
+                    features: "ふわふわの耳と大きな瞳が特徴",
+                    creator: "Yume",
+                    message: "いつも元気に跳ねているホッピーです！\n一緒に遊んでくれてありがとう💕"
+                }
             },
             {
-                name: 'くまくん',
-                image: 'cara4.png',
-                detailImage: 'cara4.png',
-                emoji: ['🍯', '💚', '🌟'],
-                size: 35,
-                moveType: 2,
-                moveTime: 5,
-                restTime: 4,
-                moveArea: 1,
-                affection: 1, // 逃げる
-                gifImage: '',
-                gifDuration: 2000,
-            },
-            {
-                name: 'きつねさん',
-                image: 'cara5.png',
-                detailImage: 'cara5.png',
-                emoji: ['🦊', '🔥', '🧡'],
-                size: 30,
-                moveType: 3,
-                moveTime: 3,
+                name: "スライミー",
+                image: "character2.png",
+                emoji: "✨",
+                movementType: 2,
+                moveTime: 4,
                 restTime: 2,
-                moveArea: 2,
-                affection: 2,
-                gifImage: '',
-                gifDuration: 2000,
+                areaType: 2,
+                size: 20,
+                comesOnClick: 1,
+                gifUrl: "",
+                gifDuration: 2,
+                details: {
+                    personality: "のんびり屋さんでマイペース",
+                    size: "小型（30cm）",
+                    ability: "どこでもすーっと滑って移動",
+                    likes: "日向ぼっこ",
+                    dislikes: "急かされること",
+                    environment: "温かい場所",
+                    features: "ぷるぷるした体",
+                    creator: "Yume",
+                    message: "ゆっくりのんびり過ごすのが好きです〜"
+                }
             },
+            {
+                name: "フワリ",
+                image: "character3.png",
+                emoji: "🌸",
+                movementType: 1,
+                moveTime: 0,
+                restTime: 0,
+                areaType: 3,
+                size: 15,
+                comesOnClick: 0,
+                gifUrl: "",
+                gifDuration: 3,
+                details: {
+                    personality: "とてもシャイで静か",
+                    size: "小型（20cm）",
+                    ability: "ふわふわ浮いている",
+                    likes: "静かな時間",
+                    dislikes: "大きな音",
+                    environment: "穏やかな空間",
+                    features: "雲のような柔らかい体",
+                    creator: "Yume",
+                    message: "静かに見守っています..."
+                }
+            },
+            {
+                name: "ピョンタ",
+                image: "character4.png",
+                emoji: "💚",
+                movementType: 3,
+                moveTime: 3,
+                restTime: 4,
+                areaType: 1,
+                size: 30,
+                comesOnClick: 1,
+                gifUrl: "",
+                gifDuration: 2,
+                details: {
+                    personality: "明るくて社交的",
+                    size: "中型（60cm）",
+                    ability: "連続ジャンプ",
+                    likes: "友達と遊ぶこと",
+                    dislikes: "孤独",
+                    environment: "賑やかな場所",
+                    features: "緑色の体と長いしっぽ",
+                    creator: "Yume",
+                    message: "みんなと一緒にいるのが大好き！"
+                }
+            },
+            {
+                name: "モコモコ",
+                image: "character5.png",
+                emoji: "☁️",
+                movementType: 2,
+                moveTime: 5,
+                restTime: 3,
+                areaType: 2,
+                size: 35,
+                comesOnClick: 1,
+                gifUrl: "",
+                gifDuration: 4,
+                details: {
+                    personality: "優しくてふんわりした性格",
+                    size: "大型（80cm）",
+                    ability: "ふわふわ移動",
+                    likes: "綿菓子と昼寝",
+                    dislikes: "水",
+                    environment: "乾燥した場所",
+                    features: "もこもこの毛並み",
+                    creator: "Yume",
+                    message: "ふわふわで気持ちいいでしょ？💕"
+                }
+            }
         ];
 
         // ========== グローバル変数 ==========
         let activeCharacters = [];
-        let mouseX = 0;
-        let mouseY = 0;
-        const ROTATION_INTERVAL = 5 * 60 * 1000; // 5分
-        const MAX_ACTIVE = 3;
+        let grassBounds = null;
+        let clickCount = 0;
+        let lastClickTime = 0;
 
         // ========== 初期化 ==========
-        function init() {
-            updateCounter();
-            selectRandomCharacters();
-            setInterval(rotateCharacters, ROTATION_INTERVAL);
-            
-            document.addEventListener('mousemove', (e) => {
-                mouseX = e.clientX;
-                mouseY = e.clientY;
+        window.addEventListener('load', () => {
+            const grassImage = document.getElementById('grassImage');
+            grassImage.addEventListener('load', () => {
+                calculateGrassBounds();
+                selectRandomCharacters();
+                startCharacterRotation();
             });
 
-            document.getElementById('close-overlay').addEventListener('click', closeOverlay);
-            document.getElementById('overlay').addEventListener('click', (e) => {
-                if (e.target === document.getElementById('overlay')) {
-                    closeOverlay();
-                }
-            });
-        }
+            if (grassImage.complete) {
+                calculateGrassBounds();
+                selectRandomCharacters();
+                startCharacterRotation();
+            }
+        });
 
-        // ========== カウンター更新 ==========
-        function updateCounter() {
-            const counter = document.getElementById('character-counter');
-            counter.textContent = `${activeCharacters.length}/${characters.length}`;
+        window.addEventListener('resize', () => {
+            calculateGrassBounds();
+        });
+
+        // ========== 草原の境界計算 ==========
+        function calculateGrassBounds() {
+            const grassImage = document.getElementById('grassImage');
+            const rect = grassImage.getBoundingClientRect();
+            grassBounds = {
+                left: rect.left,
+                top: rect.top,
+                width: rect.width,
+                height: rect.height,
+                right: rect.right,
+                bottom: rect.bottom
+            };
         }
 
         // ========== ランダムキャラクター選択 ==========
         function selectRandomCharacters() {
-            // 既存のキャラクターを削除
-            activeCharacters.forEach(char => {
-                if (char.element) {
-                    char.element.remove();
-                }
-                if (char.moveInterval) clearInterval(char.moveInterval);
-                if (char.gifInterval) clearInterval(char.gifInterval);
-                if (char.affectionInterval) clearInterval(char.affectionInterval);
-            });
-            activeCharacters = [];
-
-            // ランダムに3匹選択
+            removeAllCharacters();
+            
             const shuffled = [...characters].sort(() => Math.random() - 0.5);
-            const selected = shuffled.slice(0, Math.min(MAX_ACTIVE, characters.length));
-
+            const selected = shuffled.slice(0, Math.min(3, characters.length));
+            
             selected.forEach(char => {
                 createCharacter(char);
             });
-
+            
             updateCounter();
-        }
-
-        // ========== キャラクター回転 ==========
-        function rotateCharacters() {
-            selectRandomCharacters();
         }
 
         // ========== キャラクター作成 ==========
         function createCharacter(charData) {
-            const container = document.getElementById('grassland-container');
-            const char = { ...charData };
+            const charElement = document.createElement('div');
+            charElement.className = 'character';
             
-            // サイズ計算（1-50 → 実際のピクセルサイズ）
-            const minSize = 60;
-            const maxSize = window.innerHeight / 2;
-            char.actualSize = minSize + (char.size / 50) * (maxSize - minSize);
-
-            // キャラクター要素作成
-            const element = document.createElement('div');
-            element.className = 'character';
-            element.style.width = `${char.actualSize}px`;
-            element.style.height = `${char.actualSize}px`;
+            const size = (charData.size / 50) * (window.innerHeight / 2);
+            charElement.style.width = `${size}px`;
+            charElement.style.height = `${size}px`;
             
             const img = document.createElement('img');
-            img.src = char.image;
-            img.alt = char.name;
-            element.appendChild(img);
-
-            // 初期位置設定
-            const bounds = getMovementBounds(char.moveArea);
-            char.x = Math.random() * (bounds.maxX - bounds.minX) + bounds.minX;
-            char.y = Math.random() * (bounds.maxY - bounds.minY) + bounds.minY;
-            char.direction = 1; // 1: 右向き, -1: 左向き
-            char.isMoving = false;
-            char.isFriendly = (char.affection === 3) ? false : (char.affection === 2);
-            char.friendlyUntil = 0;
-
-            element.style.left = `${char.x}px`;
-            element.style.top = `${char.y}px`;
-
-            // イベントリスナー
-            element.addEventListener('click', (e) => handleClick(e, char));
-            element.addEventListener('dblclick', (e) => handleDoubleClick(e, char));
-
-            container.appendChild(element);
-            char.element = element;
-            char.img = img;
-
-            activeCharacters.push(char);
-
-            // 動き開始
-            if (char.moveType > 1) {
-                startMovement(char);
-            }
-
-            // GIF切り替え
-            if (char.gifImage) {
-                startGifCycle(char);
-            }
-
-            // 愛着度システム
-            if (char.affection === 2 || char.affection === 3) {
-                startAffectionBehavior(char);
-            } else if (char.affection === 1) {
-                startAvoidanceBehavior(char);
-            }
-        }
-
-        // ========== 移動範囲取得 ==========
-        function getMovementBounds(moveArea) {
-            const w = window.innerWidth;
-            const h = window.innerHeight;
+            img.src = charData.image;
+            charElement.appendChild(img);
             
-            let minY, maxY;
-            if (moveArea === 1) { // 下部1/3
-                minY = h * 2/3;
-                maxY = h;
-            } else if (moveArea === 2) { // 中央1/3
-                minY = h * 1/3;
-                maxY = h * 2/3;
-            } else { // 上部2/3
-                minY = 0;
-                maxY = h * 2/3;
-            }
-
-            return {
-                minX: 0,
-                maxX: w,
-                minY: minY,
-                maxY: maxY
+            const startPos = getRandomPositionInArea(charData.areaType, size);
+            charElement.style.left = `${startPos.x}px`;
+            charElement.style.top = `${startPos.y}px`;
+            
+            document.getElementById('container').appendChild(charElement);
+            
+            const charState = {
+                element: charElement,
+                data: charData,
+                x: startPos.x,
+                y: startPos.y,
+                size: size,
+                targetX: startPos.x,
+                targetY: startPos.y,
+                isMoving: false,
+                isFlipped: false,
+                moveTimer: null,
+                gifTimer: null,
+                lastGifTime: Date.now()
             };
+            
+            activeCharacters.push(charState);
+            
+            charElement.addEventListener('click', (e) => handleCharacterClick(e, charState));
+            charElement.addEventListener('dblclick', (e) => handleCharacterDoubleClick(e, charState));
+            
+            startCharacterBehavior(charState);
+            if (charData.gifUrl) {
+                startGifBehavior(charState);
+            }
         }
 
-        // ========== 移動システム ==========
-        function startMovement(char) {
-            const move = () => {
-                if (char.isMoving) {
-                    const duration = (char.moveTime + (Math.random() - 0.5)) * 1000;
-                    setTimeout(() => {
-                        char.isMoving = false;
-                        rest();
-                    }, Math.max(1000, duration));
-                    
-                    if (char.moveType === 2) {
-                        smoothMove(char);
-                    } else if (char.moveType === 3) {
-                        hopMove(char);
-                    }
+        // ========== エリアタイプによる位置取得 ==========
+        function getRandomPositionInArea(areaType, size) {
+            if (!grassBounds) return { x: 100, y: 100 };
+            
+            const bounds = getAreaBounds(areaType);
+            
+            const x = bounds.left + Math.random() * (bounds.width - size);
+            const y = bounds.top + Math.random() * (bounds.height - size);
+            
+            return { x, y };
+        }
+
+        function getAreaBounds(areaType) {
+            if (!grassBounds) return { left: 0, top: 0, width: 100, height: 100 };
+            
+            const { left, top, width, height } = grassBounds;
+            
+            switch(areaType) {
+                case 1: // 下部1/3
+                    return {
+                        left,
+                        top: top + height * 2/3,
+                        width,
+                        height: height / 3
+                    };
+                case 2: // 中央1/3
+                    return {
+                        left,
+                        top: top + height / 3,
+                        width,
+                        height: height / 3
+                    };
+                case 3: // 上部1/3
+                    return {
+                        left,
+                        top,
+                        width,
+                        height: height / 3
+                    };
+                default:
+                    return { left, top, width, height };
+            }
+        }
+
+        // ========== キャラクターの動き ==========
+        function startCharacterBehavior(charState) {
+            const { data } = charState;
+            
+            if (data.movementType === 1) return;
+            
+            function loop() {
+                const shouldMove = Math.random() > 0.5;
+                
+                if (shouldMove) {
+                    const duration = (data.moveTime + (Math.random() - 0.5) * data.moveTime * 0.5) * 1000;
+                    moveCharacter(charState, data.movementType);
+                    charState.moveTimer = setTimeout(loop, duration);
                 } else {
-                    rest();
+                    const duration = (data.restTime + (Math.random() - 0.5) * data.restTime * 0.5) * 1000;
+                    charState.isMoving = false;
+                    charState.moveTimer = setTimeout(loop, duration);
                 }
-            };
-
-            const rest = () => {
-                const duration = (char.restTime + (Math.random() - 0.5)) * 1000;
-                setTimeout(() => {
-                    char.isMoving = true;
-                    move();
-                }, Math.max(500, duration));
-            };
-
-            char.isMoving = Math.random() > 0.5;
-            move();
+            }
+            
+            loop();
         }
 
-        // ========== スムーズ移動 ==========
-        function smoothMove(char) {
-            const bounds = getMovementBounds(char.moveArea);
-            const targetX = Math.random() * (bounds.maxX - bounds.minX - char.actualSize) + bounds.minX;
-            const targetY = Math.random() * (bounds.maxY - bounds.minY - char.actualSize) + bounds.minY;
+        function moveCharacter(charState, movementType) {
+            const bounds = getAreaBounds(charState.data.areaType);
             
-            const duration = (char.moveTime + (Math.random() - 0.5) * 0.5) * 1000;
-            const startX = char.x;
-            const startY = char.y;
-            const startTime = Date.now();
-
-            // 向き設定
-            if (targetX > char.x && char.direction === -1) {
-                char.img.style.transform = 'scaleX(1)';
-                char.direction = 1;
-            } else if (targetX < char.x && char.direction === 1) {
-                char.img.style.transform = 'scaleX(-1)';
-                char.direction = -1;
+            const targetX = bounds.left + Math.random() * (bounds.width - charState.size);
+            const targetY = bounds.top + Math.random() * (bounds.height - charState.size);
+            
+            charState.targetX = targetX;
+            charState.targetY = targetY;
+            charState.isMoving = true;
+            
+            const deltaX = targetX - charState.x;
+            if (deltaX > 0 && !charState.isFlipped) {
+                charState.element.classList.add('flipped');
+                charState.isFlipped = true;
+            } else if (deltaX < 0 && charState.isFlipped) {
+                charState.element.classList.remove('flipped');
+                charState.isFlipped = false;
             }
+            
+            if (movementType === 2) {
+                slideCharacter(charState);
+            } else if (movementType === 3 || movementType === 4) {
+                hopCharacter(charState);
+            }
+        }
 
-            const animate = () => {
-                if (!char.isMoving) return;
-
+        function slideCharacter(charState) {
+            const duration = 1000 + Math.random() * 1000;
+            const startTime = Date.now();
+            const startX = charState.x;
+            const startY = charState.y;
+            
+            function animate() {
                 const elapsed = Date.now() - startTime;
                 const progress = Math.min(elapsed / duration, 1);
-                const easeProgress = easeInOutQuad(progress);
-
-                char.x = startX + (targetX - startX) * easeProgress;
-                char.y = startY + (targetY - startY) * easeProgress;
-
-                constrainPosition(char);
-                updatePosition(char);
-
+                
+                const easeProgress = progress < 0.5 
+                    ? 2 * progress * progress 
+                    : -1 + (4 - 2 * progress) * progress;
+                
+                charState.x = startX + (charState.targetX - startX) * easeProgress;
+                charState.y = startY + (charState.targetY - startY) * easeProgress;
+                
+                charState.element.style.left = `${charState.x}px`;
+                charState.element.style.top = `${charState.y}px`;
+                
                 if (progress < 1) {
                     requestAnimationFrame(animate);
                 }
-            };
-
+            }
+            
             animate();
         }
 
-        // ========== ホップ移動 ==========
-        function hopMove(char) {
-            const bounds = getMovementBounds(char.moveArea);
-            let hopsRemaining = Math.floor(Math.random() * 5) + 3;
+        function hopCharacter(charState) {
+            const hops = 3 + Math.floor(Math.random() * 3);
+            let currentHop = 0;
             
-            const hop = () => {
-                if (!char.isMoving || hopsRemaining <= 0) return;
-
-                const hopDistance = 30 + Math.random() * 50;
-                const angle = Math.random() * Math.PI * 2;
-                const targetX = char.x + Math.cos(angle) * hopDistance;
-                const targetY = char.y + Math.sin(angle) * hopDistance;
-
-                // 向き設定
-                if (targetX > char.x && char.direction === -1) {
-                    char.img.style.transform = 'scaleX(1)';
-                    char.direction = 1;
-                } else if (targetX < char.x && char.direction === 1) {
-                    char.img.style.transform = 'scaleX(-1)';
-                    char.direction = -1;
-                }
-
-                const duration = 400 + Math.random() * 200;
-                const startX = char.x;
-                const startY = char.y;
+            const deltaX = (charState.targetX - charState.x) / hops;
+            const deltaY = (charState.targetY - charState.y) / hops;
+            
+            function hop() {
+                if (currentHop >= hops) return;
+                
+                const hopDuration = 300 + Math.random() * 200;
                 const startTime = Date.now();
-
-                const animateHop = () => {
+                const startX = charState.x;
+                const startY = charState.y;
+                const endX = startX + deltaX;
+                const endY = startY + deltaY;
+                
+                function animate() {
                     const elapsed = Date.now() - startTime;
-                    const progress = Math.min(elapsed / duration, 1);
-
-                    char.x = startX + (targetX - startX) * progress;
-                    char.y = startY + (targetY - startY) * progress;
-
-                    // ジャンプアニメーション
-                    const jumpHeight = Math.sin(progress * Math.PI) * 20;
-                    constrainPosition(char);
-                    char.element.style.left = `${char.x}px`;
-                    char.element.style.top = `${char.y - jumpHeight}px`;
-
+                    const progress = Math.min(elapsed / hopDuration, 1);
+                    
+                    charState.x = startX + (endX - startX) * progress;
+                    charState.y = startY + (endY - startY) * progress;
+                    
+                    const hopHeight = Math.sin(progress * Math.PI) * 30;
+                    
+                    charState.element.style.left = `${charState.x}px`;
+                    charState.element.style.top = `${charState.y - hopHeight}px`;
+                    
                     if (progress < 1) {
-                        requestAnimationFrame(animateHop);
+                        requestAnimationFrame(animate);
                     } else {
-                        hopsRemaining--;
-                        if (char.isMoving && hopsRemaining > 0) {
-                            setTimeout(hop, 200 + Math.random() * 300);
-                        }
+                        currentHop++;
+                        setTimeout(hop, 100 + Math.random() * 100);
                     }
-                };
-
-                animateHop();
-            };
-
+                }
+                
+                animate();
+            }
+            
             hop();
         }
 
-        // ========== イージング関数 ==========
-        function easeInOutQuad(t) {
-            return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-        }
-
-        // ========== 位置制約 ==========
-        function constrainPosition(char) {
-            const bounds = getMovementBounds(char.moveArea);
+        // ========== GIFアニメーション ==========
+        function startGifBehavior(charState) {
+            function scheduleGif() {
+                const delay = 10000 + Math.random() * 20000;
+                charState.gifTimer = setTimeout(() => {
+                    showGif(charState);
+                    scheduleGif();
+                }, delay);
+            }
             
-            if (char.x < bounds.minX) char.x = bounds.minX;
-            if (char.x > bounds.maxX - char.actualSize) char.x = bounds.maxX - char.actualSize;
-            if (char.y < bounds.minY) char.y = bounds.minY;
-            if (char.y > bounds.maxY - char.actualSize) char.y = bounds.maxY - char.actualSize;
+            scheduleGif();
         }
 
-        // ========== 位置更新 ==========
-        function updatePosition(char) {
-            char.element.style.left = `${char.x}px`;
-            char.element.style.top = `${char.y}px`;
+        function showGif(charState) {
+            if (!charState.data.gifUrl) return;
+            
+            const gifElement = document.createElement('div');
+            gifElement.className = 'gif-overlay';
+            gifElement.style.left = charState.element.style.left;
+            gifElement.style.top = charState.element.style.top;
+            gifElement.style.width = `${charState.size}px`;
+            gifElement.style.height = `${charState.size}px`;
+            
+            const img = document.createElement('img');
+            img.src = charState.data.gifUrl;
+            gifElement.appendChild(img);
+            
+            document.getElementById('container').appendChild(gifElement);
+            
+            setTimeout(() => {
+                gifElement.remove();
+            }, charState.data.gifDuration * 1000);
         }
 
-        // ========== クリック処理 ==========
-        function handleClick(e, char) {
+        // ========== クリックイベント ==========
+        function handleCharacterClick(e, charState) {
             e.stopPropagation();
             
-            // 絵文字エフェクト
+            const now = Date.now();
+            if (now - lastClickTime < 300) return;
+            lastClickTime = now;
+            
+            setTimeout(() => {
+                if (clickCount === 1) {
+                    showEmojis(charState);
+                }
+                clickCount = 0;
+            }, 300);
+            
+            clickCount++;
+        }
+
+        function handleCharacterDoubleClick(e, charState) {
+            e.stopPropagation();
+            clickCount = 0;
+            showCharacterDetails(charState.data);
+        }
+
+        function showEmojis(charState) {
+            const rect = charState.element.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
             for (let i = 0; i < 3; i++) {
                 setTimeout(() => {
-                    createEmojiParticle(char, i);
+                    const emoji = document.createElement('div');
+                    emoji.className = 'emoji-float';
+                    emoji.textContent = charState.data.emoji;
+                    emoji.style.left = `${centerX}px`;
+                    emoji.style.top = `${centerY}px`;
+                    
+                    const sway = (Math.random() - 0.5) * 100;
+                    emoji.style.setProperty('--sway', `${sway}px`);
+                    
+                    document.body.appendChild(emoji);
+                    
+                    setTimeout(() => emoji.remove(), 2000);
                 }, i * 200);
             }
+        }
 
-            // 愛着度3の場合、一時的に懐く
-            if (char.affection === 3 && !char.isFriendly) {
-                if (Math.random() < 0.3) { // 30%の確率
-                    char.isFriendly = true;
-                    char.friendlyUntil = Date.now() + (10000 + Math.random() * 20000);
-                    startGentleHearts(char);
+        // ========== 詳細表示 ==========
+        function showCharacterDetails(charData) {
+            const detailContent = document.getElementById('detailContent');
+            const details = charData.details;
+            
+            let html = `
+                <div class="detail-header">
+                    <img src="${charData.image}" alt="${charData.name}" class="detail-image">
+                    <div class="detail-name">${charData.name}</div>
+                    ${details.creator ? `<div class="detail-creator">Created by ${details.creator}</div>` : ''}
+                </div>
+            `;
+            
+            const fields = [
+                { key: 'personality', label: '性格' },
+                { key: 'size', label: 'サイズ' },
+                { key: 'ability', label: '特技・能力' },
+                { key: 'likes', label: '喜ぶこと' },
+                { key: 'dislikes', label: '苦手なもの' },
+                { key: 'environment', label: '推奨環境' },
+                { key: 'features', label: '特徴' }
+            ];
+            
+            fields.forEach(field => {
+                if (details[field.key]) {
+                    html += `
+                        <div class="detail-section">
+                            <div class="detail-label">${field.label}</div>
+                            <div class="detail-value">${details[field.key]}</div>
+                        </div>
+                    `;
                 }
+            });
+            
+            if (details.message) {
+                html += `
+                    <div class="message-card">
+                        <div class="message-title">メッセージカード</div>
+                        <div class="message-text">${details.message}</div>
+                    </div>
+                `;
             }
-        }
-
-        // ========== ダブルクリック処理 ==========
-        function handleDoubleClick(e, char) {
-            e.stopPropagation();
-            showOverlay(char);
-        }
-
-        // ========== 絵文字パーティクル ==========
-        function createEmojiParticle(char, index) {
-            const particle = document.createElement('div');
-            particle.className = 'emoji-particle';
-            particle.textContent = char.emoji[index % char.emoji.length];
             
-            const driftX = (Math.random() - 0.5) * 60;
-            particle.style.setProperty('--drift-x', `${driftX}px`);
-            particle.style.left = `${char.x + char.actualSize / 2}px`;
-            particle.style.top = `${char.y + char.actualSize / 3}px`;
-            
-            document.getElementById('grassland-container').appendChild(particle);
-            
-            setTimeout(() => particle.remove(), 2000);
+            detailContent.innerHTML = html;
+            document.getElementById('overlay').style.display = 'block';
         }
 
-        // ========== 控えめなハート ==========
-        function startGentleHearts(char) {
-            const interval = setInterval(() => {
-                if (!char.isFriendly || Date.now() > char.friendlyUntil) {
-                    clearInterval(interval);
-                    char.isFriendly = false;
-                    return;
-                }
+        document.getElementById('closeBtn').addEventListener('click', () => {
+            document.getElementById('overlay').style.display = 'none';
+        });
 
-                if (Math.random() < 0.3) {
-                    const heart = document.createElement('div');
-                    heart.className = 'heart-particle';
-                    heart.textContent = '♡';
-                    heart.style.left = `${char.x + char.actualSize / 2}px`;
-                    heart.style.top = `${char.y + char.actualSize / 4}px`;
-                    
-                    document.getElementById('grassland-container').appendChild(heart);
-                    setTimeout(() => heart.remove(), 3000);
-                }
-            }, 2000);
-        }
-
-        // ========== オーバーレイ表示 ==========
-        function showOverlay(char) {
-            const overlay = document.getElementById('overlay');
-            const overlayImage = document.getElementById('overlay-image');
-            overlayImage.src = char.detailImage;
-            overlay.classList.add('active');
-        }
-
-        // ========== オーバーレイ閉じる ==========
-        function closeOverlay() {
-            document.getElementById('overlay').classList.remove('active');
-        }
-
-        // ========== GIFサイクル ==========
-        function startGifCycle(char) {
-            setInterval(() => {
-                if (Math.random() < 0.2 && char.gifImage) { // 20%の確率
-                    const originalSrc = char.img.src;
-                    char.img.src = char.gifImage;
-                    
-                    setTimeout(() => {
-                        char.img.src = originalSrc;
-                    }, char.gifDuration);
-                }
-            }, 10000 + Math.random() * 10000);
-        }
-
-        // ========== 愛着度: 近づく ==========
-        function startAffectionBehavior(char) {
-            setInterval(() => {
-                if (!char.isMoving && char.moveType > 1) return;
-                if (char.affection === 3 && !char.isFriendly) return;
-                
-                if (Math.random() < 0.3) {
-                    const dx = mouseX - char.x - char.actualSize / 2;
-                    const dy = mouseY - char.y - char.actualSize / 2;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance > 100 && distance < 500) {
-                        const moveDistance = 50 + Math.random() * 50;
-                        const targetX = char.x + (dx / distance) * moveDistance;
-                        const targetY = char.y + (dy / distance) * moveDistance;
-                        
-                        moveTowardsTarget(char, targetX, targetY);
-                    }
-                }
-            }, 2000);
-        }
-
-        // ========== 愛着度: 逃げる ==========
-        function startAvoidanceBehavior(char) {
-            setInterval(() => {
-                if (!char.isMoving && char.moveType > 1) return;
-                
-                const dx = mouseX - char.x - char.actualSize / 2;
-                const dy = mouseY - char.y - char.actualSize / 2;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < 150 && Math.random() < 0.5) {
-                    const moveDistance = 80 + Math.random() * 70;
-                    const targetX = char.x - (dx / distance) * moveDistance;
-                    const targetY = char.y - (dy / distance) * moveDistance;
-                    
-                    moveTowardsTarget(char, targetX, targetY);
-                }
-            }, 1500);
-        }
-
-        // ========== ターゲットへ移動 ==========
-        function moveTowardsTarget(char, targetX, targetY) {
-            const bounds = getMovementBounds(char.moveArea);
-            targetX = Math.max(bounds.minX, Math.min(targetX, bounds.maxX - char.actualSize));
-            targetY = Math.max(bounds.minY, Math.min(targetY, bounds.maxY - char.actualSize));
-
-            // 向き設定
-            if (targetX > char.x && char.direction === -1) {
-                char.img.style.transform = 'scaleX(1)';
-                char.direction = 1;
-            } else if (targetX < char.x && char.direction === 1) {
-                char.img.style.transform = 'scaleX(-1)';
-                char.direction = -1;
+        document.getElementById('overlay').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('overlay')) {
+                document.getElementById('overlay').style.display = 'none';
             }
+        });
 
-            const duration = 800 + Math.random() * 400;
-            const startX = char.x;
-            const startY = char.y;
-            const startTime = Date.now();
+        // ========== 背景クリック ==========
+        document.getElementById('container').addEventListener('click', (e) => {
+            if (e.target.closest('.character')) return;
+            
+            const clickableChars = activeCharacters.filter(c => c.data.comesOnClick === 1);
+            if (clickableChars.length === 0) return;
+            
+            const randomChar = clickableChars[Math.floor(Math.random() * clickableChars.length)];
+            
+            randomChar.targetX = e.clientX - randomChar.size / 2;
+            randomChar.targetY = e.clientY - randomChar.size / 2;
+            
+            const bounds = getAreaBounds(randomChar.data.areaType);
+            randomChar.targetX = Math.max(bounds.left, Math.min(randomChar.targetX, bounds.left + bounds.width - randomChar.size));
+            randomChar.targetY = Math.max(bounds.top, Math.min(randomChar.targetY, bounds.top + bounds.height - randomChar.size));
+            
+            slideCharacter(randomChar);
+        });
 
-            const animate = () => {
-                const elapsed = Date.now() - startTime;
-                const progress = Math.min(elapsed / duration, 1);
-                const easeProgress = easeInOutQuad(progress);
-
-                char.x = startX + (targetX - startX) * easeProgress;
-                char.y = startY + (targetY - startY) * easeProgress;
-
-                constrainPosition(char);
-                updatePosition(char);
-
-                if (progress < 1) {
-                    requestAnimationFrame(animate);
-                }
-            };
-
-            animate();
+        // ========== カウンター更新 ==========
+        function updateCounter() {
+            const displayed = activeCharacters.length;
+            const total = characters.length;
+            document.getElementById('characterCounter').textContent = `${displayed}/${total}`;
         }
 
-        // ========== 起動 ==========
-        init();
+        // ========== キャラクターローテーション ==========
+        function startCharacterRotation() {
+            setInterval(() => {
+                selectRandomCharacters();
+            }, 5 * 60 * 1000);
+        }
+
+        // ========== 全キャラクター削除 ==========
+        function removeAllCharacters() {
+            activeCharacters.forEach(char => {
+                if (char.moveTimer) clearTimeout(char.moveTimer);
+                if (char.gifTimer) clearTimeout(char.gifTimer);
+                char.element.remove();
+            });
+            activeCharacters = [];
+        }
     </script>
 </body>
 </html>
